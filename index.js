@@ -52,6 +52,7 @@ client.on('messageCreate', async message => {
         return message.reply('This user is already verified.');
     }
 
+    // Convert role names to lowercase to match config
     const otherRoles = args.map(role => role.trim().toLowerCase());
     const rolesToAdd = otherRoles.map(role => config.roles[role]).filter(Boolean);
 
