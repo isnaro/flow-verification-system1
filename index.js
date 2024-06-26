@@ -39,8 +39,9 @@ client.on('messageCreate', async message => {
         return message.reply(`This command only works in <#${config.allowedChannelId}>.`);
     }
 
-    const args = message.content.slice(prefix.length).trim().split(/, +| +/); // Split on comma+space or space
+    const args = message.content.slice(prefix.length).trim().split(' ');
     const userId = args.shift();
+    const roleName = args.join(' ').toLowerCase().trim();
     const user = await message.guild.members.fetch(userId).catch(() => null);
 
     if (!user) {
@@ -52,18 +53,17 @@ client.on('messageCreate', async message => {
         return message.reply('This user is already verified.');
     }
 
-    // Convert role names to lowercase to match config
-    const otherRoles = args.map(role => role.trim().toLowerCase());
-    const rolesToAdd = otherRoles.map(role => config.roles[role]).filter(Boolean);
+    const roleToAdd = config.roles[roleName];
+
+    if (!roleToAdd) {
+        return message.reply(`Role "${roleName}" not found.`);
+    }
 
     try {
         await user.roles.remove(config.nonVerifiedRoleId);
 
-        let assignedRolesMessage = 'No roles assigned';
-        if (rolesToAdd.length) {
-            await user.roles.add(rolesToAdd);
-            assignedRolesMessage = `Assigned roles: ${rolesToAdd.map(roleId => message.guild.roles.cache.get(roleId).name).join(', ')}`;
-        }
+        await user.roles.add(roleToAdd);
+        const assignedRoleName = message.guild.roles.cache.get(roleToAdd).name;
 
         const verificationDate = moment().tz('Africa/Algiers').format('YYYY-MM-DD HH:mm:ss'); // GMT+1
         const joinDate = moment(user.joinedAt).tz('Africa/Algiers').format('YYYY-MM-DD HH:mm:ss'); // GMT+1
@@ -79,7 +79,7 @@ client.on('messageCreate', async message => {
                 { name: 'Verification Date', value: verificationDate },
                 { name: 'Join Date', value: joinDate },
                 { name: 'Account Creation Date', value: accountCreationDate },
-                { name: 'Assigned Roles', value: assignedRolesMessage }
+                { name: 'Assigned Roles', value: assignedRoleName }
             )
             .setFooter({ text: `Verified by ${message.author.tag}`, iconURL: message.author.displayAvatarURL({ dynamic: true }) })
             .setTimestamp();
@@ -87,7 +87,7 @@ client.on('messageCreate', async message => {
         const logChannel = client.channels.cache.get(config.logChannelId);
         logChannel.send({ embeds: [verificationEmbed] });
 
-        message.reply(`Successfully verified ${user.user.tag}. ${assignedRolesMessage}`);
+        message.reply(`Successfully verified ${user.user.tag}. Assigned roles: ${assignedRoleName}`);
     } catch (err) {
         console.error(err);
         message.reply('There was an error processing the verification.');
