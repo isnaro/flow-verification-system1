@@ -39,11 +39,7 @@ client.on('messageCreate', async message => {
         return message.reply(`This command only works in <#${config.allowedChannelId}>.`);
     }
 
-<<<<<<< HEAD
-    const args = message.content.slice(prefix.length).trim().split(/ +/);
-=======
     const args = message.content.slice(prefix.length).trim().split(/, +| +/); // Split on comma+space or space
->>>>>>> parent of 1a3483a (Update index.js)
     const userId = args.shift();
     const user = await message.guild.members.fetch(userId).catch(() => null);
 
@@ -56,18 +52,6 @@ client.on('messageCreate', async message => {
         return message.reply('This user is already verified.');
     }
 
-<<<<<<< HEAD
-    const roleToAdd = config.roles[roleName];
-
-    if (!roleToAdd) {
-        return message.reply(`Role "${roleName}" not found in configuration.`);
-    }
-
-    try {
-        await user.roles.remove(config.nonVerifiedRoleId);
-        await user.roles.add(roleToAdd);
-        const assignedRoleName = message.guild.roles.cache.get(roleToAdd).name;
-=======
     // Convert role names to lowercase to match config
     const otherRoles = args.map(role => role.trim().toLowerCase());
     const rolesToAdd = otherRoles.map(role => config.roles[role]).filter(Boolean);
@@ -80,7 +64,6 @@ client.on('messageCreate', async message => {
             await user.roles.add(rolesToAdd);
             assignedRolesMessage = `Assigned roles: ${rolesToAdd.map(roleId => message.guild.roles.cache.get(roleId).name).join(', ')}`;
         }
->>>>>>> parent of 1a3483a (Update index.js)
 
         const verificationDate = moment().tz('Africa/Algiers').format('YYYY-MM-DD HH:mm:ss'); // GMT+1
         const joinDate = moment(user.joinedAt).tz('Africa/Algiers').format('YYYY-MM-DD HH:mm:ss'); // GMT+1
@@ -135,7 +118,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
                 .setFooter({ text: 'Verification Required', iconURL: member.user.displayAvatarURL({ dynamic: true }) })
                 .setTimestamp();
 
-            const notificationChannel = client.channels.cache.get(channelId); // Send the notification to the verification voice channel
+            const notificationChannel = client.channels.cache.get(config.logChannelId); // Send the notification to the log channel
             if (notificationChannel) {
                 notificationChannel.send({ content: `<@&${config.adminRoleId}>`, embeds: [embed] });
             }
