@@ -102,7 +102,6 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
         const member = newState.member;
         // Check if the user has the non-verified role
         if (member.roles.cache.has(config.nonVerifiedRoleId)) {
-            const channelId = newState.channelId; // Get the ID of the channel the user joined
             const joinDate = moment(member.joinedAt).tz('Africa/Algiers').format('YYYY-MM-DD HH:mm:ss'); // GMT+1
             const accountCreationDate = moment(member.user.createdAt).tz('Africa/Algiers').format('YYYY-MM-DD HH:mm:ss'); // GMT+1
             const embed = new EmbedBuilder()
@@ -113,12 +112,12 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
                     { name: 'User', value: `${member.user.tag} (${member.id})` },
                     { name: 'Join Date', value: joinDate },
                     { name: 'Account Creation Date', value: accountCreationDate },
-                    { name: 'Action Required', value: `Join the voice channel <#${channelId}> to verify them.` }
+                    { name: 'Action Required', value: `Join the voice channel <#${newState.channelId}> to verify them.` }
                 )
                 .setFooter({ text: 'Verification Required', iconURL: member.user.displayAvatarURL({ dynamic: true }) })
                 .setTimestamp();
 
-            const notificationChannel = client.channels.cache.get(config.logChannelId); // Send the notification to the log channel
+            const notificationChannel = client.channels.cache.get(newState.channelId); // Send the notification to the joined voice channel
             if (notificationChannel) {
                 notificationChannel.send({ content: `<@&${config.adminRoleId}>`, embeds: [embed] });
             }
