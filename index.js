@@ -39,7 +39,7 @@ client.on('messageCreate', async message => {
         return message.reply(`This command only works in <#${config.allowedChannelId}>.`);
     }
 
-    const args = message.content.slice(prefix.length).trim().split(' ');
+    const args = message.content.slice(prefix.length).trim().split(/ +/);
     const userId = args.shift();
     const roleName = args.join(' ').toLowerCase().trim();
     const user = await message.guild.members.fetch(userId).catch(() => null);
@@ -56,12 +56,11 @@ client.on('messageCreate', async message => {
     const roleToAdd = config.roles[roleName];
 
     if (!roleToAdd) {
-        return message.reply(`Role "${roleName}" not found.`);
+        return message.reply(`Role "${roleName}" not found in configuration.`);
     }
 
     try {
         await user.roles.remove(config.nonVerifiedRoleId);
-
         await user.roles.add(roleToAdd);
         const assignedRoleName = message.guild.roles.cache.get(roleToAdd).name;
 
